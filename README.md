@@ -1,6 +1,6 @@
-# Planificador Dieciochero
+# Planificador
 
-Simulador de actividades de la ramada del señor Loyola, modeladas como un DAG.
+Simulador de actividades, modeladas como un DAG.
 Ejecuta cada actividad en su propio proceso, respetando dependencias y un
 límite de concurrencia `K`.
 
@@ -32,30 +32,6 @@ make
 Para interrumpir la ejecución (simula la inspección de la Seremi) usar `Ctrl+C`:
 aborta todas las actividades en curso.
 
-## Estructura del código
-
-- `actividad.hpp`: struct `Actividad`, un nodo del DAG (id, nombre, tiempo, sus
-  dependencias, sus dependientes, y el estado de ejecución).
-- `parser.hpp` / `parser.cpp`: lee `plan.txt` y arma el grafo completo:
-  primera pasada crea cada nodo, segunda pasada llena la lista inversa
-  `dependientes` y calcula `grado_entrada` de cada uno.
-- `planificador.hpp` / `planificador.cpp`: núcleo del programa.
-  - `ejecutar_plan`: loop principal. Mantiene una cola de actividades listas
-    (grado de entrada 0) y lanza procesos con `fork()` mientras haya cupo
-    (`running < K`). Usa `wait()` (bloqueante) para esperar a que cualquier
-    hijo termine — sin busy-waiting.
-  - `ejecutar_actividad`: código que corre el proceso hijo — simula el
-    trabajo (`usleep`), puede fallar con una probabilidad configurable, y
-    escribe su mensaje de resultado a un pipe.
-  - `abortar_rama`: cuando una actividad falla, marca como abortados (de
-    forma iterativa, con una cola) a todos sus descendientes, sin afectar
-    el resto del DAG.
-  - Manejo de `SIGINT`: un manejador mínimo (solo levanta una bandera
-    `sig_atomic_t`, que es lo único seguro de tocar dentro de un signal
-    handler) que el loop principal revisa para matar con `SIGTERM` a todos
-    los procesos activos y esperar a que terminen antes de salir.
-- `main.cpp`: parsea los argumentos de línea de comandos y llama a las
-  funciones anteriores.
 
 ## Decisiones de diseño
 
