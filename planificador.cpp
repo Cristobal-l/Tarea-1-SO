@@ -225,9 +225,16 @@ void ejecutar_plan(std::map<int, Actividad>& actividades, int K) {
             pids_activos.insert(pid);
             running++;
         }
+       if (running == 0) break; // lo que queda son ramas abortadas
 
+        int status;
+        pid_t hijo = wait(&status);
+        if (hijo == -1) {
+            if (errno == EINTR) continue;
+            std::cerr << "Error en wait(): " << strerror(errno) << "\n";
+            break;
+        }
      
-
         running--;
         pids_activos.erase(hijo);
         int id = pid_a_actividad[hijo];
